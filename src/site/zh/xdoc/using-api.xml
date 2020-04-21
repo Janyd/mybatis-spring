@@ -17,8 +17,8 @@
 
 -->
 <document xmlns="http://maven.apache.org/XDOC/2.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
 
   <properties>
     <title>MyBatis-Spring | 使用 MyBatis API</title>
@@ -26,11 +26,12 @@
     <author email="eduardo.macarron@gmail.com">Eduardo Macarron</author>
     <author email="nanlei1987@gmail.com">Nan Lei</author>
   </properties>
-     
+
   <body>
     <section name="使用 MyBatis API">
       <p>
-        使用 MyBatis-Spring，你可以继续直接使用 MyBatis 的 API。只需简单地使用 <code>SqlSessionFactoryBean</code> 在 Spring 中创建一个 <code>SqlSessionFactory</code>，然后按你的方式在代码中使用工厂即可。
+        使用 MyBatis-Spring，你可以继续直接使用 MyBatis 的 API。只需简单地使用 <code>SqlSessionFactoryBean</code> 在 Spring 中创建一个 <code>
+        SqlSessionFactory</code>，然后按你的方式在代码中使用工厂即可。
       </p>
       <source><![CDATA[public class UserDaoImpl implements UserDao {
   // SqlSessionFactory 一般会由 SqlSessionDaoSupport 进行设置

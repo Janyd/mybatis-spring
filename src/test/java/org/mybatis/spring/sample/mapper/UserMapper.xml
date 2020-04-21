@@ -22,12 +22,16 @@
 
 <mapper namespace="org.mybatis.spring.sample.mapper.UserMapper">
 
-  <select id="getUsers" resultType="org.mybatis.spring.sample.domain.User">
-    select * from users order by id
-  </select>
+    <select id="getUsers" resultType="org.mybatis.spring.sample.domain.User">
+        select *
+        from users
+        order by id
+    </select>
 
-  <select id="getUser" resultType="org.mybatis.spring.sample.domain.User">
-        select * from users where id=#{value}
-  </select>
+    <select id="getUser" resultType="org.mybatis.spring.sample.domain.User">
+        select *
+        from users
+        where id = #{value}
+    </select>
 
 </mapper>

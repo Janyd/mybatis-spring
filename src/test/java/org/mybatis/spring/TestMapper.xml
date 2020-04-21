@@ -22,7 +22,8 @@
 <mapper namespace="org.mybatis.spring.TestMapper">
 
     <select id="findTest" resultType="int">
-        SELECT<include refid="includedSql"/>
+        SELECT
+        <include refid="includedSql"/>
     </select>
 
     <sql id="includedSql">1</sql>

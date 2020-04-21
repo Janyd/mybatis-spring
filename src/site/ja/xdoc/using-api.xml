@@ -17,16 +17,16 @@
 
 -->
 <document xmlns="http://maven.apache.org/XDOC/2.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
 
   <properties>
     <title>MyBatis-Spring | MyBatis API の使用</title>
     <author email="hpresnall@gmail.com">Hunter Presnall</author>
     <author email="eduardo.macarron@gmail.com">Eduardo Macarron</author>
-    <author email="harawata@gmail.com">Iwao AVE!</author>    
+    <author email="harawata@gmail.com">Iwao AVE!</author>
   </properties>
-     
+
   <body>
     <section name="MyBatis API の使用">
       <p>
@@ -62,7 +62,8 @@
         </li>
         <li>
           <p>
-            <code>SqlSession</code> が Spring のトランザクションマネージャーが使っているのと同じ <code>DataSource</code> を使っていて、既に進行中のトランザクションが存在している場合、このコードは例外を投げます。
+            <code>SqlSession</code>
+            が Spring のトランザクションマネージャーが使っているのと同じ <code>DataSource</code> を使っていて、既に進行中のトランザクションが存在している場合、このコードは例外を投げます。
           </p>
         </li>
         <li>
@@ -73,13 +74,15 @@
         </li>
         <li>
           <p>
-            <code>DefaultSqlSession</code> を使って生成した Mapper もスレッドセーフとはなりません。
+            <code>DefaultSqlSession</code>
+            を使って生成した Mapper もスレッドセーフとはなりません。
             もしあなたの Bean に注入した場合、エラーが発生します。
           </p>
         </li>
         <li>
           <p>
-            <code>SqlSession</code> は常に finally ブロックでクローズする必要があります。
+            <code>SqlSession</code>
+            は常に finally ブロックでクローズする必要があります。
           </p>
         </li>
       </ul>
