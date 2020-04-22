@@ -68,6 +68,7 @@ import static org.springframework.util.StringUtils.hasLength;
 import static org.springframework.util.StringUtils.tokenizeToStringArray;
 
 /**
+ * Spring Factory Bean 作用创建SqlSessionFactory
  * {@code FactoryBean} that creates a MyBatis {@code SqlSessionFactory}. This is the usual way to set up a shared
  * MyBatis {@code SqlSessionFactory} in a Spring application context; the SqlSessionFactory can then be passed to
  * MyBatis-based DAOs via dependency injection.
@@ -92,55 +93,119 @@ public class SqlSessionFactoryBean
     private static final ResourcePatternResolver RESOURCE_PATTERN_RESOLVER = new PathMatchingResourcePatternResolver();
     private static final MetadataReaderFactory METADATA_READER_FACTORY = new CachingMetadataReaderFactory();
 
+    /**
+     * 资源路径
+     */
     private Resource configLocation;
 
+    /**
+     * Mybatis 核心配置类
+     */
     private Configuration configuration;
 
+    /**
+     * Mapper xml 文件路径
+     */
     private Resource[] mapperLocations;
 
+    /**
+     * 数据源
+     */
     private DataSource dataSource;
 
+    /**
+     * 事务工厂
+     */
     private TransactionFactory transactionFactory;
 
+    /**
+     * 配置属性
+     */
     private Properties configurationProperties;
 
+    /**
+     * SqlSessionFactoryFactory建造者
+     */
     private SqlSessionFactoryBuilder sqlSessionFactoryBuilder = new SqlSessionFactoryBuilder();
 
+    /**
+     * SqlSessionFactory 对象，在Spring IOC容器单例
+     */
     private SqlSessionFactory sqlSessionFactory;
 
+    /**
+     * 环境变量
+     */
     // EnvironmentAware requires spring 3.1
     private String environment = SqlSessionFactoryBean.class.getSimpleName();
 
+
     private boolean failFast;
 
+    /**
+     * 记载的插件
+     */
     private Interceptor[] plugins;
 
+    /**
+     * 加载的TypeHandler
+     */
     private TypeHandler<?>[] typeHandlers;
 
+    /**
+     * 需要加载typeHandler的包路径
+     */
     private String typeHandlersPackage;
 
     @SuppressWarnings("rawtypes")
     private Class<? extends TypeHandler> defaultEnumTypeHandler;
 
+    /**
+     * 别名映射的Class
+     */
     private Class<?>[] typeAliases;
 
     private String typeAliasesPackage;
 
+    /**
+     * 别名映射的父类
+     */
     private Class<?> typeAliasesSuperType;
 
+    /**
+     * 加载的语言驱动
+     */
     private LanguageDriver[] scriptingLanguageDrivers;
 
+    /**
+     * 指定语言驱动的Class
+     */
     private Class<? extends LanguageDriver> defaultScriptingLanguageDriver;
 
+    /**
+     * 数据库厂商标识提供者
+     */
     // issue #19. No default provider.
     private DatabaseIdProvider databaseIdProvider;
 
+    /**
+     * 自定义VFS实现类的Class
+     */
     private Class<? extends VFS> vfs;
 
+    /**
+     * 缓存
+     */
     private Cache cache;
 
+    /**
+     * 对象工厂，用于实例化对象等等
+     */
     private ObjectFactory objectFactory;
 
+    /**
+     * 对象包装类工厂
+     */
     private ObjectWrapperFactory objectWrapperFactory;
 
     /**
@@ -450,10 +515,12 @@ public class SqlSessionFactoryBean
         state((configuration == null && configLocation == null) || !(configuration != null && configLocation != null),
             "Property 'configuration' and 'configLocation' can not specified with together");
 
+        //实例化后初始化
         this.sqlSessionFactory = buildSqlSessionFactory();
     }
 
     /**
+     * 开始对SqlSessionFactory进行实例化
      * Build a {@code SqlSessionFactory} instance.
      * <p>
      * The default implementation uses the standard MyBatis {@code XMLConfigBuilder} API to build a
@@ -469,27 +536,35 @@ public class SqlSessionFactoryBean
 
         XMLConfigBuilder xmlConfigBuilder = null;
         if (this.configuration != null) {
+            //当configuration已经实例化了
             targetConfiguration = this.configuration;
+            //需要设置当前configurationProperties动态变量
             if (targetConfiguration.getVariables() == null) {
                 targetConfiguration.setVariables(this.configurationProperties);
             } else if (this.configurationProperties != null) {
                 targetConfiguration.getVariables().putAll(this.configurationProperties);
             }
         } else if (this.configLocation != null) {
+            //configuration没实例化，但配置路径不为空，此处未对配置文件进行解析
             xmlConfigBuilder = new XMLConfigBuilder(this.configLocation.getInputStream(), null, this.configurationProperties);
             targetConfiguration = xmlConfigBuilder.getConfiguration();
         } else {
             LOGGER.debug(
                 () -> "Property 'configuration' or 'configLocation' not specified, using default MyBatis Configuration");
+            //没有配置文件，且configration也为空，则简单创建一个
             targetConfiguration = new Configuration();
             Optional.ofNullable(this.configurationProperties).ifPresent(targetConfiguration::setVariables);
         }
 
+        //objectFactory不为空则设置进configuration
         Optional.ofNullable(this.objectFactory).ifPresent(targetConfiguration::setObjectFactory);
+        //objectWrapperFactory不为空则设置进configuration
         Optional.ofNullable(this.objectWrapperFactory).ifPresent(targetConfiguration::setObjectWrapperFactory);
+        //vfs不为空则设置进configuration
         Optional.ofNullable(this.vfs).ifPresent(targetConfiguration::setVfsImpl);
 
         if (hasLength(this.typeAliasesPackage)) {
+            //扫描包下为typeAliasesSuperType 父类的类
             scanClasses(this.typeAliasesPackage, this.typeAliasesSuperType).stream()
                 .filter(clazz -> !clazz.isAnonymousClass()).filter(clazz -> !clazz.isInterface())
                 .filter(clazz -> !clazz.isMemberClass()).forEach(targetConfiguration.getTypeAliasRegistry()::registerAlias);
@@ -497,11 +572,13 @@ public class SqlSessionFactoryBean
 
         if (!isEmpty(this.typeAliases)) {
             Stream.of(this.typeAliases).forEach(typeAlias -> {
+                //注册别名映射
                 targetConfiguration.getTypeAliasRegistry().registerAlias(typeAlias);
                 LOGGER.debug(() -> "Registered type alias: '" + typeAlias + "'");
             });
         }
 
+        //加载插件
         if (!isEmpty(this.plugins)) {
             Stream.of(this.plugins).forEach(plugin -> {
                 targetConfiguration.addInterceptor(plugin);
@@ -509,12 +586,14 @@ public class SqlSessionFactoryBean
             });
         }
 
+        //扫描typeHandlersPackage包下的typeHandler,并注册到configuration中
         if (hasLength(this.typeHandlersPackage)) {
             scanClasses(this.typeHandlersPackage, TypeHandler.class).stream().filter(clazz -> !clazz.isAnonymousClass())
                 .filter(clazz -> !clazz.isInterface()).filter(clazz -> !Modifier.isAbstract(clazz.getModifiers()))
                 .forEach(targetConfiguration.getTypeHandlerRegistry()::register);
         }
 
+        //加载typeHandlers
         if (!isEmpty(this.typeHandlers)) {
             Stream.of(this.typeHandlers).forEach(typeHandler -> {
                 targetConfiguration.getTypeHandlerRegistry().register(typeHandler);
@@ -522,8 +601,10 @@ public class SqlSessionFactoryBean
             });
         }
 
+        //设置默认的枚举TypeHandler
         targetConfiguration.setDefaultEnumTypeHandler(defaultEnumTypeHandler);
 
+        //加载语言驱动
         if (!isEmpty(this.scriptingLanguageDrivers)) {
             Stream.of(this.scriptingLanguageDrivers).forEach(languageDriver -> {
                 targetConfiguration.getLanguageRegistry().register(languageDriver);
@@ -541,10 +622,12 @@ public class SqlSessionFactoryBean
             }
         }
 
+        //添加cache到Configuration
         Optional.ofNullable(this.cache).ifPresent(targetConfiguration::addCache);
 
         if (xmlConfigBuilder != null) {
             try {
+                //解析mybatis-config.xml配置文件
                 xmlConfigBuilder.parse();
                 LOGGER.debug(() -> "Parsed configuration file: '" + this.configLocation + "'");
             } catch (Exception ex) {
@@ -554,11 +637,13 @@ public class SqlSessionFactoryBean
             }
         }
 
+        //设置环境，内容含有数据源，事务工厂，此处事务工厂默认为SpringManagedTransactionFactory
         targetConfiguration.setEnvironment(new Environment(this.environment,
             this.transactionFactory == null ? new SpringManagedTransactionFactory() : this.transactionFactory,
             this.dataSource));
 
         if (this.mapperLocations != null) {
+            //加载mapper.xml文件
             if (this.mapperLocations.length == 0) {
                 LOGGER.warn(() -> "Property 'mapperLocations' was specified but matching resources are not found.");
             } else {
@@ -582,6 +667,7 @@ public class SqlSessionFactoryBean
             LOGGER.debug(() -> "Property 'mapperLocations' was not specified.");
         }
 
+        //创建SqlSessionFactory对象
         return this.sqlSessionFactoryBuilder.build(targetConfiguration);
     }
 
@@ -590,6 +676,7 @@ public class SqlSessionFactoryBean
      */
     @Override
     public SqlSessionFactory getObject() throws Exception {
+        //获取SqlSessionFactory对象，如果未初始化，执行afterPropertiesSet
         if (this.sqlSessionFactory == null) {
             afterPropertiesSet();
         }
@@ -606,6 +693,7 @@ public class SqlSessionFactoryBean
     }
 
     /**
+     * 是否是单例
      * {@inheritDoc}
      */
     @Override
@@ -620,10 +708,19 @@ public class SqlSessionFactoryBean
     public void onApplicationEvent(ApplicationEvent event) {
         if (failFast && event instanceof ContextRefreshedEvent) {
             // fail-fast -> check all statements are completed
+            //此处会检查，Mapper是否已加载完成，如果未加载完成会抛异常
             this.sqlSessionFactory.getConfiguration().getMappedStatementNames();
         }
     }
 
+    /**
+     * 扫描packagePatterns包下，并继承assignableType的类
+     *
+     * @param packagePatterns 包路径
+     * @param assignableType  父类
+     * @return 返回符合的Class
+     * @throws IOException 异常
+     */
     private Set<Class<?>> scanClasses(String packagePatterns, Class<?> assignableType) throws IOException {
         Set<Class<?>> classes = new HashSet<>();
         String[] packagePatternArray = tokenizeToStringArray(packagePatterns,

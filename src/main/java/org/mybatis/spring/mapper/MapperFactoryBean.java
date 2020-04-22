@@ -24,6 +24,7 @@ import org.springframework.beans.factory.FactoryBean;
 import static org.springframework.util.Assert.notNull;
 
 /**
+ * 将Mapper接口转成MapperFactoryBean放入到Spring容器中
  * BeanFactory that enables injection of MyBatis mapper interfaces. It can be set up with a SqlSessionFactory or a
  * pre-configured SqlSessionTemplate.
  * <p>
@@ -52,8 +53,14 @@ import static org.springframework.util.Assert.notNull;
  */
 public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements FactoryBean<T> {
 
+    /**
+     * Mapper接口的Class
+     */
     private Class<T> mapperInterface;
 
+    /**
+     * 是否需要添加到configuration
+     */
     private boolean addToConfig = true;
 
     public MapperFactoryBean() {

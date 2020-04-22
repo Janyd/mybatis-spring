@@ -191,13 +191,16 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
         GenericBeanDefinition definition;
         for (BeanDefinitionHolder holder : beanDefinitions) {
             definition = (GenericBeanDefinition) holder.getBeanDefinition();
+            //获取Mapper的ClassName
             String beanClassName = definition.getBeanClassName();
             LOGGER.debug(() -> "Creating MapperFactoryBean with name '" + holder.getBeanName() + "' and '" + beanClassName
                 + "' mapperInterface");
 
             // the mapper interface is the original class of the bean
             // but, the actual class of the bean is MapperFactoryBean
+            //并将beanClassName作为构造函数参数
             definition.getConstructorArgumentValues().addGenericArgumentValue(beanClassName); // issue #59
+            //重新设置该bean的Class
             definition.setBeanClass(this.mapperFactoryBeanClass);
 
             definition.getPropertyValues().add("addToConfig", this.addToConfig);

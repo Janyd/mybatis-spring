@@ -29,7 +29,8 @@ import java.sql.SQLException;
 import static org.springframework.util.Assert.notNull;
 
 /**
- * 由Spring管理的事务
+ * Spring环境下的事务
+ * <p>
  * {@code SpringManagedTransaction} handles the lifecycle of a JDBC connection. It retrieves a connection from Spring's
  * transaction manager and returns it back to it when it is no longer needed.
  * <p>

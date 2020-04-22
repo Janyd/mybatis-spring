@@ -89,6 +89,7 @@ public final class SqlSessionUtils {
         notNull(sessionFactory, NO_SQL_SESSION_FACTORY_SPECIFIED);
         notNull(executorType, NO_EXECUTOR_TYPE_SPECIFIED);
 
+        //从TransactionSynchronizationManager拿出SqlSessionHolder
         SqlSessionHolder holder = (SqlSessionHolder) TransactionSynchronizationManager.getResource(sessionFactory);
 
         SqlSession session = sessionHolder(executorType, holder);
@@ -96,15 +97,18 @@ public final class SqlSessionUtils {
             return session;
         }
 
+        //如果session == null则开始创建session
         LOGGER.debug(() -> "Creating a new SqlSession");
         session = sessionFactory.openSession(executorType);
 
+        //将sqlSession放入Spring事务同步管理中
         registerSessionHolder(sessionFactory, executorType, exceptionTranslator, session);
 
         return session;
     }
 
     /**
+     * 注册SqlSessionHolder
      * Register session holder if synchronization is active (i.e. a Spring TX is active).
      * <p>
      * Note: The DataSource used by the Environment should be synchronized with the transaction either through
@@ -123,13 +127,17 @@ public final class SqlSessionUtils {
             Environment environment = sessionFactory.getConfiguration().getEnvironment();
 
             if (environment.getTransactionFactory() instanceof SpringManagedTransactionFactory) {
+                //使用SpringManagedTransactionFactory事务工厂
                 LOGGER.debug(() -> "Registering transaction synchronization for SqlSession [" + session + "]");
 
+                //封装SqlSessionHolder
                 holder = new SqlSessionHolder(session, executorType, exceptionTranslator);
                 TransactionSynchronizationManager.bindResource(sessionFactory, holder);
                 TransactionSynchronizationManager
                     .registerSynchronization(new SqlSessionSynchronization(holder, sessionFactory));
+                //设置同步
                 holder.setSynchronizedWithTransaction(true);
+                //增加计数
                 holder.requested();
             } else {
                 if (TransactionSynchronizationManager.getResource(environment.getDataSource()) == null) {
@@ -150,11 +158,12 @@ public final class SqlSessionUtils {
     private static SqlSession sessionHolder(ExecutorType executorType, SqlSessionHolder holder) {
         SqlSession session = null;
         if (holder != null && holder.isSynchronizedWithTransaction()) {
+            //执行器发生变更需要抛出异常
             if (holder.getExecutorType() != executorType) {
                 throw new TransientDataAccessResourceException(
                     "Cannot change the ExecutorType when there is an existing transaction");
             }
-
+            //增加计数
             holder.requested();
 
             LOGGER.debug(() -> "Fetched SqlSession [" + holder.getSqlSession() + "] from current transaction");
@@ -196,12 +205,14 @@ public final class SqlSessionUtils {
         notNull(session, NO_SQL_SESSION_SPECIFIED);
         notNull(sessionFactory, NO_SQL_SESSION_FACTORY_SPECIFIED);
 
+        //从Spring 事务同步管理器中拿出SqlSessionHolder
         SqlSessionHolder holder = (SqlSessionHolder) TransactionSynchronizationManager.getResource(sessionFactory);
 
         return (holder != null) && (holder.getSqlSession() == session);
     }
 
     /**
+     * 基于Spring事务体系，进行适配
      * Callback for cleaning up resources. It cleans TransactionSynchronizationManager and also commits and closes the
      * {@code SqlSession}. It assumes that {@code Connection} life cycle will be managed by
      * {@code DataSourceTransactionManager} or {@code JtaTransactionManager}
@@ -232,6 +243,7 @@ public final class SqlSessionUtils {
         }
 
         /**
+         * 事务挂起时
          * {@inheritDoc}
          */
         @Override
@@ -243,6 +255,7 @@ public final class SqlSessionUtils {
         }
 
         /**
+         * 当事务恢复时
          * {@inheritDoc}
          */
         @Override
@@ -254,6 +267,7 @@ public final class SqlSessionUtils {
         }
 
         /**
+         * 事务提交前，主要是为了SqlSession#commit()方法中，不仅仅有事务提交还有提交批量操作，刷新本地缓存等等
          * {@inheritDoc}
          */
         @Override
@@ -282,6 +296,7 @@ public final class SqlSessionUtils {
         }
 
         /**
+         * 提交事务完成之前，需要进行关闭sqlSession
          * {@inheritDoc}
          */
         @Override
@@ -299,6 +314,7 @@ public final class SqlSessionUtils {
         }
 
         /**
+         * 完成后解绑资源
          * {@inheritDoc}
          */
         @Override

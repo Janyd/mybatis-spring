@@ -299,6 +299,7 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
     }
 
     /**
+     * 以下方法都抛异常，原因是不能手动调用提交事务与回滚，会由sqlSessionProxy来进行提交与回滚
      * {@inheritDoc}
      */
     @Override
@@ -411,6 +412,7 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
                 SqlSessionTemplate.this.executorType, SqlSessionTemplate.this.exceptionTranslator);
             try {
                 Object result = method.invoke(sqlSession, args);
+                //判断是否在Spring环境下，如果不是在Spring环境下，需要调用进行提交事务
                 if (!isSqlSessionTransactional(sqlSession, SqlSessionTemplate.this.sqlSessionFactory)) {
                     // force commit even on non-dirty sessions because some databases require
                     // a commit/rollback before calling close()

@@ -39,6 +39,7 @@ public class SpringManagedTransactionFactory implements TransactionFactory {
     }
 
     /**
+     * 创建事务，必须得有DataSource才可
      * {@inheritDoc}
      */
     @Override
